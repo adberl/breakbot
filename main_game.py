@@ -61,7 +61,7 @@ class Ball:
 		self.x = x
 		self.y = y
 		self.col = col
-		self.angle = math.radians(60)#random.uniform(0, math.pi)
+		self.angle = math.radians(-60)#random.uniform(0, math.pi)
 		self.speed = speed
 			
 	def drawBall(self):
@@ -75,10 +75,13 @@ class Ball:
 			self.x = self.x - (self.x + self.size - (width-10))
 			self.angle = - self.angle		
 		elif self.x - self.size < 10:
-			self.x = self.x + (self.x - self.size + 10)
+			self.x = self.x + (self.size - self.x) + 10	
 			self.angle = -self.angle
 		elif self.y - self.size < 80:
-			self.angle -= math.pi/2
+			print(self.y)
+			self.y = self.y - (80 - self.y - self.size)	
+			print(self.y)
+			self.angle += math.pi/2
 			
 		else:
 			for brick in bricks:
@@ -97,7 +100,7 @@ class Ball:
 			if self.y > y and (self.x >= x and self.x <= x+60):
 				self.angle += math.pi/2
 
-bricks = createBricks(4, rowColors, 120, screen)		
+bricks = []#createBricks(4, rowColors, 120, screen)		
 ball = Ball(6, 150, 400, (120, 240, 0), 5)
 			
 while working:
