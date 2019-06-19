@@ -78,10 +78,8 @@ class Ball:
 			self.x = self.x + (self.size - self.x) + 10	
 			self.angle = -self.angle
 		elif self.y - self.size < 80:
-			print(self.y)
-			self.y = self.y - (80 - self.y - self.size)	
-			print(self.y)
-			self.angle += math.pi/2
+			self.y = self.y + (80 - self.y + self.size)	
+			self.angle = math.pi - self.angle
 			
 		else:
 			for brick in bricks:
@@ -93,14 +91,19 @@ class Ball:
 					global score
 					score += 1
 					
-					self.angle -= math.pi/2					
+					self.angle = math.pi - self.angle					
 					
 					break
 			
-			if self.y > y and (self.x >= x and self.x <= x+60):
-				self.angle += math.pi/2
 
-bricks = []#createBricks(4, rowColors, 120, screen)		
+			if self.y > y and (self.x >= x and self.x <= x+60):
+				self.y = self.y - (self.y + self.size - y)
+				self.angle = math.pi - self.angle
+			elif self.y > y:
+				print(loser)
+
+
+bricks = createBricks(4, rowColors, 120, screen)		
 ball = Ball(6, 150, 400, (120, 240, 0), 5)
 			
 while working:
