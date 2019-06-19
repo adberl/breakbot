@@ -61,7 +61,7 @@ class Ball:
 		self.x = x
 		self.y = y
 		self.col = col
-		self.angle = math.radians(2)#random.uniform(0, math.pi)
+		self.angle = random.uniform(-math.pi/2, math.pi/2)
 		self.speed = speed
 			
 	def drawBall(self):
@@ -75,7 +75,7 @@ class Ball:
 		
 		if self.x + self.size > width-10: # hit right wall
 			self.x = self.x - (self.x + self.size - (width-10))
-			self.angle = - self.angle		
+			self.angle = -self.angle		
 		elif self.x - self.size < 10: # hit left wall
 			self.x = self.x + (self.size - self.x) + 10	
 			self.angle = -self.angle
@@ -85,31 +85,30 @@ class Ball:
 			going_up = False
 		else:
 		
-			if going_up:
-				for brick in bricks:
-					if (brick.y + Brick.size_y) > (self.y-self.size) and (self.x >= brick.x and self.x < brick.x+Brick.size_x):
-						#self.y = oldy
-						print(self.y - self.size, brick.y + Brick.size_y)
-						if brick.destroyed:
-							continue
-						brick.destroyed = True
-						global score
-						score += 1
-						
-						self.angle = math.pi - self.angle					
-						
-						break			
-
-				if self.y + self.size > y and (self.x >= x and self.x <= x+60):
-					self.y = oldy
-					dist = -(x+60 - self.x) + 30
-					self.angle = (math.pi-self.angle) + math.radians(dist) #math.pi - self.angle
-			else:
+			for brick in bricks:
+				distX = self.x - max(brick.x, min(self.x, brick.x+Brick.size_x))		
+				distY = self.y - max(brick.y, min(self.y, brick.y+Brick.size_y))		
 				
-				elif self.y > y:
-					print('loser')
-					global working
-					working = False
+				if distX**2 + distY**2 < self.size**2 and not brick.destroyed:
+					brick.destroyed = True
+					global score
+					score += 1
+					
+					if distX <= 0:
+						self.angle = math.pi - self.angle 	
+					else:
+						self.angle = -self.angle							
+					break			
+
+			if self.y + self.size > y and (self.x >= x and self.x <= x+60):
+				self.y = oldy
+				dist = -(x+60 - self.x) + 30
+				self.angle = (math.pi-self.angle) + math.radians(dist) #math.pi - self.angle
+			
+			elif self.y > y:
+				print('loser')
+				global working
+				working = False
 				
 
 
