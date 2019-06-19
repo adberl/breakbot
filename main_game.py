@@ -61,46 +61,56 @@ class Ball:
 		self.x = x
 		self.y = y
 		self.col = col
-		self.angle = math.radians(-60)#random.uniform(0, math.pi)
+		self.angle = math.radians(2)#random.uniform(0, math.pi)
 		self.speed = speed
 			
 	def drawBall(self):
 		pygame.draw.circle(screen, self.col, (self.x, self.y), self.size)
 	
 	def move(self):
-		self.x += int(math.sin(self.angle) * self.speed)
-		self.y -= int(math.cos(self.angle) * self.speed)
+		oldx = self.x
+		oldy = self.y
+		self.x += math.ceil(math.sin(self.angle) * self.speed)
+		self.y -= math.ceil(math.cos(self.angle) * self.speed)
 		
-		if self.x + self.size > width-10:
+		if self.x + self.size > width-10: # hit right wall
 			self.x = self.x - (self.x + self.size - (width-10))
 			self.angle = - self.angle		
-		elif self.x - self.size < 10:
+		elif self.x - self.size < 10: # hit left wall
 			self.x = self.x + (self.size - self.x) + 10	
 			self.angle = -self.angle
-		elif self.y - self.size < 80:
+		elif self.y - self.size < 80: # hit top wall
 			self.y = self.y + (80 - self.y + self.size)	
 			self.angle = math.pi - self.angle
-			
+			going_up = False
 		else:
-			for brick in bricks:
-				if (brick.y + Brick.size_y) > (self.y+self.size) and (self.x >= brick.x and self.x < brick.x+Brick.size_x):
-					
-					if brick.destroyed:
-						continue
-					brick.destroyed = True
-					global score
-					score += 1
-					
-					self.angle = math.pi - self.angle					
-					
-					break
-			
+		
+			if going_up:
+				for brick in bricks:
+					if (brick.y + Brick.size_y) > (self.y-self.size) and (self.x >= brick.x and self.x < brick.x+Brick.size_x):
+						#self.y = oldy
+						print(self.y - self.size, brick.y + Brick.size_y)
+						if brick.destroyed:
+							continue
+						brick.destroyed = True
+						global score
+						score += 1
+						
+						self.angle = math.pi - self.angle					
+						
+						break			
 
-			if self.y > y and (self.x >= x and self.x <= x+60):
-				self.y = self.y - (self.y + self.size - y)
-				self.angle = math.pi - self.angle
-			elif self.y > y:
-				print(loser)
+				if self.y + self.size > y and (self.x >= x and self.x <= x+60):
+					self.y = oldy
+					dist = -(x+60 - self.x) + 30
+					self.angle = (math.pi-self.angle) + math.radians(dist) #math.pi - self.angle
+			else:
+				
+				elif self.y > y:
+					print('loser')
+					global working
+					working = False
+				
 
 
 bricks = createBricks(4, rowColors, 120, screen)		
