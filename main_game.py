@@ -27,8 +27,8 @@ score = 0
 timer = 0
 generation = []
 gen_id = 0
-spec_id = 1
-SPECIMENS_PER_GEN = 15
+spec_id = 0
+SPECIMENS_PER_GEN = 3
 
 
 font = pygame.font.SysFont("andalemono", 45)
@@ -143,7 +143,7 @@ def lost():
 	global bricks, ball, timer, score, spec_id, x, y, gen_id
 	# nn stuff:
 	if spec_id == (SPECIMENS_PER_GEN - 1):
-		saveGen()
+#		saveGen()
 		gen_id += 1
 		spec_id = 0
 		breed()
@@ -163,7 +163,7 @@ def lost():
 	
 def breed():
 	generation.sort(key = lambda x: x.fitness, reverse=True)
-	
+	print([sp.fitness for sp in generation])
 	for i in range(0, SPECIMENS_PER_GEN-1, 2):
 		parenta = generation[i]
 		parentb = generation[i+1]
@@ -294,4 +294,4 @@ while working:
 	text = font.render("S:{} T:{} G:{} SP:{}".format(score, timer, gen_id, spec_id), True, (0, 0, 0))
 	screen.blit(text, ((300 - text.get_width()) // 2, 20))	
 	pygame.display.flip()
-	pygame.time.Clock().tick(2000)
+	pygame.time.Clock().tick(500)
