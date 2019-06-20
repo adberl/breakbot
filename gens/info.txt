@@ -1,0 +1,2 @@
+gen_NUMBEROFGENERATION - all specimens of given generation
+gen_NUMBEROFGENERATION_best - best fitness in generation
