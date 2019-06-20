@@ -4,6 +4,7 @@ import random
 import numpy as np
 import threading
 import time
+import copy
 
 pygame.init()
 
@@ -29,7 +30,7 @@ timer = 0
 generation = []
 gen_id = 0
 spec_id = 0
-SPECIMENS_PER_GEN = 8
+SPECIMENS_PER_GEN = 40
 
 font = pygame.font.SysFont("andalemono", 45)
 
@@ -197,7 +198,8 @@ def breed():
 		generation[current].out_weights[4:] = parenta.out_weights[4:]
 
 
-def mutate(specimen):
+def mutate(old):
+	specimen = copy.deepcopy(old)
 	mid = np.array(random.sample(range(0, specimen.l1_weights.shape[0]), random.randrange(14)))
 	for idx in mid:
 		specimen.l1_weights[idx, random.randrange(16)] = np.random.uniform(-1.0, 1.0, 1)
@@ -275,7 +277,7 @@ while working:
 		lost()
 	if(score == 32):
 		print('won')
-		losy()
+		lost()
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
