@@ -121,7 +121,6 @@ class Ball:
 				self.angle = (math.pi-self.angle) + math.radians(dist) #math.pi - self.angle
 			
 			elif self.y > y:
-				print('loser')
 				lost()
 	
 def inc_timer():
@@ -141,7 +140,7 @@ def finit():
 	y = 420
 			
 def lost():
-	global bricks, ball, timer, score
+	global bricks, ball, timer, score, spec_id, x, y, gen_id
 	# nn stuff:
 	if spec_id == (SPECIMENS_PER_GEN - 1):
 		saveGen()
@@ -149,7 +148,8 @@ def lost():
 		breed()
 		return
 		
-	generation[spec_id].fitness = score / (timer/30)
+	generation[spec_id].fitness = score #/ (timer/30)
+	print('gen: {}\tspec: {}\t fit:{}', gen_id, spec_id, 	generation[spec_id].fitness)
 	spec_id += 1
 
 
@@ -213,10 +213,10 @@ class Specimen:
 
 def genZero():
 	for i in range(SPECIMENS_PER_GEN):
-		generation.append(Specimen(gen_id, 2, 16, 8))
+		generation.append(Specimen(gen_id, 37, 16, 8))
 	
 def saveGen():
-	f = open('gen_'+gen_id,'w+')
+	f = open('gen_'+str(gen_id),'w+')
 	for specimen in generation:
 		f.write(specimen.l1_weights, specimen.l2_weights, specimen.out_weights, specimen.fitness)
 	f.close()
@@ -233,6 +233,7 @@ def getInputVector():
 	temp.append(ball.angle)
 	temp.append(x)
 	temp.append(y)
+	temp = np.array(temp)
 	return temp
 
 finit()
@@ -247,6 +248,7 @@ while working:
 		lost()
 	if(score == 32):
 		print('won')
+		losy()
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
@@ -258,8 +260,8 @@ while working:
 	if pressed[pygame.K_RIGHT] or pressed[pygame.K_d]: x += 4
 
 
-	inputVector = np.array([getInputVector()]).reshape(37, 1)
-	print(inputVector, inputVector.shape, inputVector.size)
+	inputVector = getInputVector().reshape((1, 37))
+#	print(inputVector, inputVector.shape, inputVector.size)
 	if generation[spec_id].output(getInputVector()) > 0.5:
 		x -= 4
 	else:
@@ -291,4 +293,4 @@ while working:
 	text = font.render("S:{} T:{} G:{} SP:{}".format(score, timer, gen_id, spec_id), True, (0, 0, 0))
 	screen.blit(text, ((300 - text.get_width()) // 2, 20))	
 	pygame.display.flip()
-	pygame.time.Clock().tick(90)
+	pygame.time.Clock().tick(1000)
