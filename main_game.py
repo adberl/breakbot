@@ -141,6 +141,7 @@ def finit():
 	y = 420
 			
 def lost():
+	global bricks, ball, timer, score
 	# nn stuff:
 	if spec_id == (SPECIMENS_PER_GEN - 1):
 		saveGen()
@@ -151,7 +152,7 @@ def lost():
 	generation[spec_id].fitness = score / (timer/30)
 	spec_id += 1
 
-	global bricks, ball, timer, score
+
 	bricks = createBricks(4, rowColors, 120, screen)		
 	ball = Ball(6, 155, 400, (120, 240, 0), 5)
 	score = 0
@@ -172,17 +173,17 @@ def breed():
 		
 		#mutation:
 		
-		mid = numpy.array(random.sample(range(0, generation[i]_l1_weights.shape[0]), random.randrange(14)))
+		mid = numpy.array(random.sample(range(0, generation[i].l1_weights.shape[0]), random.randrange(14)))
 		for idx in mid:
-			generation[i]_l1_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
+			generation[i].l1_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
 
-		mid = numpy.array(random.sample(range(0, generation[i]_l2_weights.shape[0]), random.randrange(14)))
+		mid = numpy.array(random.sample(range(0, generation[i].l2_weights.shape[0]), random.randrange(14)))
 		for idx in mid:
-			generation[i]_l2_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
+			generation[i].l2_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
 			
-		mid = numpy.array(random.sample(range(0, generation[i]_out_weights.shape[0]), random.randrange(14)))
+		mid = numpy.array(random.sample(range(0, generation[i].out_weights.shape[0]), random.randrange(14)))
 		for idx in mid:
-			generation[i]_out_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)			
+			generation[i].out_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)			
 
 def sigmoid(x):
 	return 1 / ( 1 + np.exp(-1 * x))
@@ -220,7 +221,19 @@ def saveGen():
 		f.write(specimen.l1_weights, specimen.l2_weights, specimen.out_weights, specimen.fitness)
 	f.close()
 
-def getInputVector
+def getInputVector():
+	temp = []
+	for brick in bricks:
+		if not brick.destroyed:
+			temp.append(1)
+		else:
+			temp.append(0)
+	temp.append(ball.x)
+	temp.append(ball.y)
+	temp.append(ball.angle)
+	temp.append(x)
+	temp.append(y)
+	return temp
 
 finit()
 thtimer = threading.Timer(1.0, inc_timer)
@@ -244,7 +257,13 @@ while working:
 	if pressed[pygame.K_LEFT] or pressed[pygame.K_a]: x -= 4
 	if pressed[pygame.K_RIGHT] or pressed[pygame.K_d]: x += 4
 
-	if generation[spec_id].output(getInputVector())
+
+	inputVector = np.array([getInputVector()]).reshape(37, 1)
+	print(inputVector, inputVector.shape, inputVector.size)
+	if generation[spec_id].output(getInputVector()) > 0.5:
+		x -= 4
+	else:
+		x += 4
 
 	x = max(min(x, 230), 10)
 	
