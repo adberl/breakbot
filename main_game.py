@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-import numpy
+import numpy as np
 import threading
 import time
 
@@ -27,9 +27,8 @@ score = 0
 timer = 0
 generation = []
 gen_id = 0
-specimen = 0
-spec_id = 0
-SPECIMENS_PER_GEN = 15
+spec_id = 1
+SPECIMENS_PER_GEN = 30
 
 
 font = pygame.font.SysFont("andalemono", 45)
@@ -131,8 +130,27 @@ def inc_timer():
 		timer += 1
 		time.sleep(1)
 		inc_timer()
+
+def finit():
+	global bricks, ball, timer, score
+	bricks = createBricks(4, rowColors, 120, screen)		
+	ball = Ball(6, 155, 400, (120, 240, 0), 5)
+	score = 0
+	timer = 0
+	x = 120
+	y = 420
 			
 def lost():
+	# nn stuff:
+	if spec_id == (SPECIMENS_PER_GEN - 1):
+		saveGen()
+		gen_id += 1
+		breed()
+		return
+		
+	generation[spec_id].fitness = score / (timer/30)
+	spec_id += 1
+
 	global bricks, ball, timer, score
 	bricks = createBricks(4, rowColors, 120, screen)		
 	ball = Ball(6, 155, 400, (120, 240, 0), 5)
@@ -141,8 +159,30 @@ def lost():
 	x = 120
 	y = 420
 	
-	# nn stuff:
+def breed():
+	generation.sort(key = lambda x: x.fitness, reverse=True)
 	
+	for i in range(0, SPECIMENS_PER_GEN, 2):
+		parenta = generation[i]
+		parentb = generation[i+1]
+		
+		generation[i].l2_weights = parentb.l2_weights
+		generation[i].out_weights[:4] = parenta.out_weights[:4]
+		generation[i].out_weights[4:] = parentb.out_weights[4:]
+		
+		#mutation:
+		
+		mid = numpy.array(random.sample(range(0, generation[i]_l1_weights.shape[0]), random.randrange(14)))
+		for idx in mid:
+			generation[i]_l1_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
+
+		mid = numpy.array(random.sample(range(0, generation[i]_l2_weights.shape[0]), random.randrange(14)))
+		for idx in mid:
+			generation[i]_l2_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
+			
+		mid = numpy.array(random.sample(range(0, generation[i]_out_weights.shape[0]), random.randrange(14)))
+		for idx in mid:
+			generation[i]_out_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)			
 
 def sigmoid(x):
 	return 1 / ( 1 + np.exp(-1 * x))
@@ -166,25 +206,27 @@ class Specimen:
 	def output(self, input_vector):
 		l1_out = np.matmul(input_vector, self.l1_weights)
 		l1_out = relu(l1_out)
-		l2_out = np.matmul(self.l1_weights, self.l2_weights)
+		l2_out = np.matmul(l1_out, self.l2_weights)
 		l2_out = relu(l2_out)
-		return sigmoid(np.matmul(self.l2_weights, self.out_weights))
+		return sigmoid(np.matmul(l2_out, self.out_weights))
 
 def genZero():
 	for i in range(SPECIMENS_PER_GEN):
 		generation.append(Specimen(gen_id, 2, 16, 8))
 	
 def saveGen():
-	f = open('gen_'+gen_id,'w')
+	f = open('gen_'+gen_id,'w+')
 	for specimen in generation:
 		f.write(specimen.l1_weights, specimen.l2_weights, specimen.out_weights, specimen.fitness)
 	f.close()
 
-lost()
+def getInputVector
+
+finit()
 thtimer = threading.Timer(1.0, inc_timer)
 thtimer.start()
 
-genZero():
+genZero()
 	
 while working:
 	if timer == 30:
@@ -192,8 +234,6 @@ while working:
 		lost()
 	if(score == 32):
 		print('won')
-	if(timer == 0):
-		lost()
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
@@ -203,6 +243,8 @@ while working:
 	pressed = pygame.key.get_pressed()	
 	if pressed[pygame.K_LEFT] or pressed[pygame.K_a]: x -= 4
 	if pressed[pygame.K_RIGHT] or pressed[pygame.K_d]: x += 4
+
+	if generation[spec_id].output(getInputVector())
 
 	x = max(min(x, 230), 10)
 	
@@ -227,7 +269,7 @@ while working:
 	pygame.draw.rect(screen,
 		(120, 20, 20), pygame.Rect(290, 420, 10, 20)) # left left
 
-	text = font.render("S:{} T:{} G:{} SP:{}".format(score, timer, gen_id, specimen), True, (0, 0, 0))
+	text = font.render("S:{} T:{} G:{} SP:{}".format(score, timer, gen_id, spec_id), True, (0, 0, 0))
 	screen.blit(text, ((300 - text.get_width()) // 2, 20))	
 	pygame.display.flip()
 	pygame.time.Clock().tick(90)

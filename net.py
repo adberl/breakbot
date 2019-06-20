@@ -27,5 +27,5 @@ class Specimen:
 		l2_out = relu(l2_out)
 		return sigmoid(np.matmul(self.l2_weights, self.out_weights))
 		
-a = Specimen(2, 2, 2)
+a = Specimen(2, 2, 1)
 print(a.output(np.array([[2, 3]])))
