@@ -28,7 +28,7 @@ timer = 0
 generation = []
 gen_id = 0
 spec_id = 1
-SPECIMENS_PER_GEN = 30
+SPECIMENS_PER_GEN = 15
 
 
 font = pygame.font.SysFont("andalemono", 45)
@@ -145,11 +145,12 @@ def lost():
 	if spec_id == (SPECIMENS_PER_GEN - 1):
 		saveGen()
 		gen_id += 1
+		spec_id = 0
 		breed()
 		return
 		
 	generation[spec_id].fitness = score #/ (timer/30)
-	print('gen: {}\tspec: {}\t fit:{}', gen_id, spec_id, 	generation[spec_id].fitness)
+	print('gen: {}\tspec: {}\t fit:{}'.format(gen_id, spec_id, 	generation[spec_id].fitness))
 	spec_id += 1
 
 
@@ -163,7 +164,7 @@ def lost():
 def breed():
 	generation.sort(key = lambda x: x.fitness, reverse=True)
 	
-	for i in range(0, SPECIMENS_PER_GEN, 2):
+	for i in range(0, SPECIMENS_PER_GEN-1, 2):
 		parenta = generation[i]
 		parentb = generation[i+1]
 		
@@ -173,17 +174,17 @@ def breed():
 		
 		#mutation:
 		
-		mid = numpy.array(random.sample(range(0, generation[i].l1_weights.shape[0]), random.randrange(14)))
+		mid = np.array(random.sample(range(0, generation[i].l1_weights.shape[0]), random.randrange(14)))
 		for idx in mid:
-			generation[i].l1_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
+			generation[i].l1_weights[idx, random.randrange(16)] = np.random.uniform(-1.0, 1.0, 1)
 
-		mid = numpy.array(random.sample(range(0, generation[i].l2_weights.shape[0]), random.randrange(14)))
+		mid = np.array(random.sample(range(0, generation[i].l2_weights.shape[0]), random.randrange(14)))
 		for idx in mid:
-			generation[i].l2_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)
+			generation[i].l2_weights[idx, random.randrange(8)] = np.random.uniform(-1.0, 1.0, 1)
 			
-		mid = numpy.array(random.sample(range(0, generation[i].out_weights.shape[0]), random.randrange(14)))
+		mid = np.array(random.sample(range(0, generation[i].out_weights.shape[0]), random.randrange(8)))
 		for idx in mid:
-			generation[i].out_weights[idx, random.randrange(16)] = numpy.random.uniform(-1.0, 1.0, 1)			
+			generation[i].out_weights[idx, random.randrange(1)] = np.random.uniform(-1.0, 1.0, 1)			
 
 def sigmoid(x):
 	return 1 / ( 1 + np.exp(-1 * x))
@@ -216,9 +217,9 @@ def genZero():
 		generation.append(Specimen(gen_id, 37, 16, 8))
 	
 def saveGen():
-	f = open('gen_'+str(gen_id),'w+')
+	f = open('gens/gen_'+str(gen_id),'w+')
 	for specimen in generation:
-		f.write(specimen.l1_weights, specimen.l2_weights, specimen.out_weights, specimen.fitness)
+		f.write("{}, {}, {}, {}".format(specimen.l1_weights, specimen.l2_weights, specimen.out_weights, specimen.fitness))
 	f.close()
 
 def getInputVector():
@@ -293,4 +294,4 @@ while working:
 	text = font.render("S:{} T:{} G:{} SP:{}".format(score, timer, gen_id, spec_id), True, (0, 0, 0))
 	screen.blit(text, ((300 - text.get_width()) // 2, 20))	
 	pygame.display.flip()
-	pygame.time.Clock().tick(1000)
+	pygame.time.Clock().tick(2000)
