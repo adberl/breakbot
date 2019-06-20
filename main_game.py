@@ -13,6 +13,7 @@ screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption('breakbot')
 working = True
 going_up = True
+movement = 0
 
 #colors
 bat_color = (255, 100, 0)
@@ -27,9 +28,8 @@ score = 0
 timer = 0
 generation = []
 gen_id = 0
-spec_id = 1
-SPECIMENS_PER_GEN = 15
-
+spec_id = 0
+SPECIMENS_PER_GEN = 12
 
 font = pygame.font.SysFont("andalemono", 45)
 
@@ -69,7 +69,7 @@ class Ball:
 		self.x = x
 		self.y = y
 		self.col = col
-		self.angle = random.uniform(-math.pi/2, math.pi/2)
+		self.angle = math.radians(40)#random.uniform(-math.pi/2, math.pi/2)
 		self.speed = speed
 			
 	def drawBall(self):
@@ -140,51 +140,76 @@ def finit():
 	y = 420
 			
 def lost():
-	global bricks, ball, timer, score, spec_id, x, y, gen_id
+	global bricks, ball, timer, score, spec_id, x, y, gen_id, movement
 	# nn stuff:
-	if spec_id == (SPECIMENS_PER_GEN - 1):
-		saveGen()
+	generation[spec_id].fitness = score + movement#/ (timer/30)
+	print('gen: {}\tspec: {}\tfit:{}'.format(gen_id, spec_id, generation[spec_id].fitness))
+
+	if spec_id == (SPECIMENS_PER_GEN-1):
+#		saveGen()
 		gen_id += 1
 		spec_id = 0
 		breed()
 		return
 		
-	generation[spec_id].fitness = score #/ (timer/30)
-	print('gen: {}\tspec: {}\t fit:{}'.format(gen_id, spec_id, 	generation[spec_id].fitness))
 	spec_id += 1
-
 
 	bricks = createBricks(4, rowColors, 120, screen)		
 	ball = Ball(6, 155, 400, (120, 240, 0), 5)
 	score = 0
+	movement = 0
 	timer = 0
 	x = 120
 	y = 420
 	
 def breed():
 	generation.sort(key = lambda x: x.fitness, reverse=True)
-	
-	for i in range(0, SPECIMENS_PER_GEN-1, 2):
-		parenta = generation[i]
-		parentb = generation[i+1]
-		
-		generation[i].l2_weights = parentb.l2_weights
-		generation[i].out_weights[:4] = parenta.out_weights[:4]
-		generation[i].out_weights[4:] = parentb.out_weights[4:]
-		
-		#mutation:
-		
-		mid = np.array(random.sample(range(0, generation[i].l1_weights.shape[0]), random.randrange(14)))
-		for idx in mid:
-			generation[i].l1_weights[idx, random.randrange(16)] = np.random.uniform(-1.0, 1.0, 1)
 
-		mid = np.array(random.sample(range(0, generation[i].l2_weights.shape[0]), random.randrange(14)))
-		for idx in mid:
-			generation[i].l2_weights[idx, random.randrange(8)] = np.random.uniform(-1.0, 1.0, 1)
-			
-		mid = np.array(random.sample(range(0, generation[i].out_weights.shape[0]), random.randrange(8)))
-		for idx in mid:
-			generation[i].out_weights[idx, random.randrange(1)] = np.random.uniform(-1.0, 1.0, 1)			
+	f = open('gens/gen_'+str(gen_id)+'_best','w+')
+	f.write("{}, {}, {}, {}".format(generation[0].l1_weights, generation[0].l2_weights, generation[0].out_weights, generation[0].fitness))
+	f.close()
+	
+	print('best fitness: ', generation[0].fitness)
+	
+	if SPECIMENS_PER_GEN % 4 != 0:
+		print('bad specimen nr, not divisible by 4')
+	
+	for i in range(0, int(SPECIMENS_PER_GEN/4)):
+		parenta = generation[i] # offspring one, remains unchanged
+		if i == SPECIMENS_PER_GEN/4:
+			parentb = generation[0]
+		else:
+			parentb = generation[i+1]
+		
+		current = i*3 # offspring 2
+		generation[current] = mutate(generation[current])
+		
+		current = i*3 + 1
+		generation[current].l1_weights = parenta.l1_weights
+		generation[current].l2_weights = parentb.l2_weights
+		generation[current].out_weights[:4] = parenta.out_weights[:4]
+		generation[current].out_weights[4:] = parentb.out_weights[4:]
+
+		current = i*3 + 2
+		generation[current].l1_weights = parentb.l1_weights
+		generation[current].l2_weights = parenta.l2_weights
+		generation[current].out_weights[:4] = parentb.out_weights[:4]
+		generation[current].out_weights[4:] = parenta.out_weights[4:]
+
+
+def mutate(specimen):
+	mid = np.array(random.sample(range(0, specimen.l1_weights.shape[0]), random.randrange(14)))
+	for idx in mid:
+		specimen.l1_weights[idx, random.randrange(16)] = np.random.uniform(-1.0, 1.0, 1)
+
+	mid = np.array(random.sample(range(0, specimen.l2_weights.shape[0]), random.randrange(14)))
+	for idx in mid:
+		specimen.l2_weights[idx, random.randrange(8)] = np.random.uniform(-1.0, 1.0, 1)
+		
+	mid = np.array(random.sample(range(0, specimen.out_weights.shape[0]), random.randrange(8)))
+	for idx in mid:
+		specimen.out_weights[idx, random.randrange(1)] = np.random.uniform(-1.0, 1.0, 1)	
+	return specimen
 
 def sigmoid(x):
 	return 1 / ( 1 + np.exp(-1 * x))
@@ -215,6 +240,7 @@ class Specimen:
 def genZero():
 	for i in range(SPECIMENS_PER_GEN):
 		generation.append(Specimen(gen_id, 37, 16, 8))
+	print(len(generation))
 	
 def saveGen():
 	f = open('gens/gen_'+str(gen_id),'w+')
@@ -260,16 +286,16 @@ while working:
 	if pressed[pygame.K_LEFT] or pressed[pygame.K_a]: x -= 4
 	if pressed[pygame.K_RIGHT] or pressed[pygame.K_d]: x += 4
 
-
+	oldx = x
 	inputVector = getInputVector().reshape((1, 37))
-#	print(inputVector, inputVector.shape, inputVector.size)
 	if generation[spec_id].output(getInputVector()) > 0.5:
 		x -= 4
 	else:
 		x += 4
 
 	x = max(min(x, 230), 10)
-	
+	if oldx != x:
+		movement += 0.2
 	screen.fill(background_color)
 
 	for brick in bricks:
